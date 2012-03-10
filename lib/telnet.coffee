@@ -66,7 +66,8 @@ class IACState extends EventEmitter
       chunk = @bytes()
       @emit 'data', chunk if chunk.length
       @inIAC = true
-    else
+    # 0 is NOP, should be skipped
+    else if b isnt 0
       @buffer.push b
 
 commandIs = (command, tests...) ->
@@ -152,10 +153,13 @@ class TelnetServer extends EventEmitter
       if @echoOn()
         socket.write chunk
 
-    sendCommand socket, constants.IAC, constants.DO, constants.NAWS if @options.naws
+    sendCommand socket, constants.IAC, constants.DO, constants.NAWS   if @options.naws
     sendCommand socket, constants.IAC, constants.DO, constants.TTYPE  if @options.ttypes
+    sendCommand socket, constants.IAC, constants.DO, constants.ECHO   if @options.do_echo
+    sendCommand socket, constants.IAC, constants.WILL, constants.ECHO if @options.will_echo
+    sendCommand socket, constants.IAC, constants.WILL, constants.SGA  if @options.will_sga
 
-  echoOn: -> @echo
+  echoOn: -> off#@echo
   clientTerminalTypes: -> @ttypes
   clientWindowSize: -> @clientDimensions
 
